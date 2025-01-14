@@ -2,27 +2,52 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { registerUser } from '../utils/auth'; // Update with path to registerUser
+import { checkUser, registerUser } from '../utils/auth';
+import { useAuth } from '../utils/context/authContext';
 
-function RegisterForm({ user, updateUser }) {
+function RegisterForm() {
+  const user = useAuth();
   const [formData, setFormData] = useState({
     bio: '',
-    uid: user.uid,
+    uid: user.user.uid,
+    userName: '',
+    city: '',
+    state: '',
+    emailAddress: user.userEmail,
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    registerUser(formData).then(() => updateUser(user.uid));
+    registerUser(formData).then(checkUser(user.user.uid)).then(() => {
+      window.location.reload();
+    });
+  };
+
+  const handleChange = ({ target }) => {
+    setFormData((prev) => ({ ...prev, [target.name]: target.value }));
   };
 
   return (
-    <Form onSubmit={handleSubmit}>
-      <Form.Group className="mb-3" controlId="formBasicEmail">
-        <Form.Label>Gamer Bio</Form.Label>
-        <Form.Control as="textarea" name="bio" required placeholder="Enter your Bio" onChange={({ target }) => setFormData((prev) => ({ ...prev, [target.name]: target.value }))} />
-        <Form.Text className="text-muted">Let other gamers know a little bit about you...</Form.Text>
+    <Form className="registerForm" onSubmit={handleSubmit}>
+      <Form.Group className="mb-3 registerInputs topInput" controlId="formBasicEmail">
+        <Form.Control
+          as="textarea"
+          name="userName"
+          required
+          placeholder="Enter your Username"
+          onChange={handleChange}
+        />
       </Form.Group>
-      <Button variant="primary" type="submit">
+      <Form.Group className="mb-3 registerInputs" controlId="password">
+        <Form.Control
+          as="textarea"
+          name="password"
+          required
+          placeholder="Enter your Bio"
+          onChange={handleChange}
+        />
+      </Form.Group>
+      <Button variant="outline-success" className="registerButton" type="submit">
         Submit
       </Button>
     </Form>
@@ -32,8 +57,10 @@ function RegisterForm({ user, updateUser }) {
 RegisterForm.propTypes = {
   user: PropTypes.shape({
     uid: PropTypes.string.isRequired,
+    userName: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    password: PropTypes.string.isRequired,
   }).isRequired,
-  updateUser: PropTypes.func.isRequired,
 };
 
 export default RegisterForm;
